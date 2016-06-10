@@ -26,5 +26,5 @@ RUN sudo apt-get install -y build-essential wget ocaml-findlib libao-ocaml-dev \
 
 # Runtime environment
 VOLUME /scriptdir
-ENTRYPOINT eval `opam config env` && sudo chown -R liquidsoap:liquidsoap /scriptdir && \
+ENTRYPOINT sudo chown -R liquidsoap:liquidsoap /scriptdir && \
 	cd /scriptdir && liquidsoap /scriptdir/main.liq
