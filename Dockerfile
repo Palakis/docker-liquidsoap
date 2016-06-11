@@ -4,7 +4,7 @@ MAINTAINER Stéphane Lepin <contact@slepin.fr>
 # Create liquidsoap user with passwordless sudo
 RUN sed -i "s/jessie main/jessie main contrib non-free/" /etc/apt/sources.list && \
 	sed -i "s/httpredir.debian.org/ftp.debian.org/" /etc/apt/sources.list
-RUN mkdir /scriptdir && apt-get update && apt-get install -y sudo
+RUN apt-get update && apt-get install -y sudo
 RUN useradd -m liquidsoap && echo 'liquidsoap ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers
 
 # Build liquidsoap from source
@@ -24,7 +24,4 @@ RUN sudo apt-get install -y build-essential wget ocaml-findlib libao-ocaml-dev \
 	./configure && make && sudo make install && \
 	cd /home/liquidsoap && rm -rf liquidsoap-1.1.1-full && sudo apt-get autoclean -y
 
-# Runtime environment
-VOLUME /scriptdir
-ENTRYPOINT sudo chown -R liquidsoap:liquidsoap /scriptdir && \
-	cd /scriptdir && liquidsoap /scriptdir/main.liq
+ENTRYPOINT ["liquidsoap"]
