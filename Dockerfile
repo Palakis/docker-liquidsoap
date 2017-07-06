@@ -1,27 +1,10 @@
-FROM debian:jessie
-MAINTAINER Stéphane Lepin <contact@slepin.fr>
+FROM ocaml/opam:ubuntu-17.04_ocaml-4.02.3
+MAINTAINER Stéphane Lepin <stephane.lepin@gmail.com>
 
-# Create liquidsoap user with passwordless sudo
-RUN sed -i "s/jessie main/jessie main contrib non-free/" /etc/apt/sources.list && \
-	sed -i "s/httpredir.debian.org/ftp.debian.org/" /etc/apt/sources.list
-RUN apt-get update && apt-get install -y sudo
-RUN useradd -m liquidsoap && echo 'liquidsoap ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers
+USER opam
+ENV LIQ_VERSION="1.3.1"
+ENV LIQ_PLUGINS="mad lame vorbis opus fdkaac flac cry taglib soundtouch samplerate"
+RUN opam update
+RUN eval $(opam config env) && opam depext -y -i $LIQ_PLUGINS "liquidsoap.$LIQ_VERSION"
 
-# Build liquidsoap from source
-USER liquidsoap
-WORKDIR /home/liquidsoap
-RUN sudo apt-get install -y build-essential wget ocaml-findlib libao-ocaml-dev \
-		libmad-ocaml-dev libtaglib-ocaml-dev libvorbis-ocaml-dev libladspa-ocaml-dev \
-		libxmlplaylist-ocaml-dev libflac-dev libmp3lame-dev libcamomile-ocaml-dev \
-		libfaad-dev libpcre-ocaml-dev libfdk-aac-dev \
-		libsamplerate-ocaml-dev libsoundtouch-ocaml-dev libdssi-ocaml-dev \
-		liblo-ocaml-dev libyojson-ocaml-dev libopus-dev && \
-	wget https://github.com/savonet/liquidsoap/releases/download/liquidsoap-1.1.1/liquidsoap-1.1.1-full.tar.gz -O- | tar zxvf - && \
-	cd /home/liquidsoap/liquidsoap-1.1.1-full && \
-	cp PACKAGES.minimal PACKAGES && \
-	for module in ocaml-opus ocaml-fdkaac ocaml-faad ocaml-soundtouch ocaml-samplerate \
-	ocaml-dssi ocaml-xmlplaylist ocaml-lo; do sed -i "s/#$module/$module/g" PACKAGES; done && \
-	./configure && make && sudo make install && \
-	cd /home/liquidsoap && rm -rf liquidsoap-1.1.1-full && sudo apt-get autoclean -y
-
-ENTRYPOINT ["liquidsoap"]
+ENTRYPOINT ["/home/opam/.opam/system/bin/liquidsoap"]
